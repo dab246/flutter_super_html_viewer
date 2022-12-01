@@ -1,6 +1,5 @@
-name: flutter_super_webview
-description: A new Flutter project for web view to help display web content
-publish_to: 'none'
+name: flutter_super_html_viewer
+description: A Flutter plugin that provides a HtmlViewer widget on multiple platforms
 
 version: 1.0.0+1
 

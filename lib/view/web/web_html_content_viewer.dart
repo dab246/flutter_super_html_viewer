@@ -4,11 +4,11 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_super_webview/utils/color_utils.dart';
-import 'package:flutter_super_webview/utils/html_utils.dart';
-import 'package:flutter_super_webview/view/web/web_html_content_viewer_controller.dart';
+import 'package:flutter_super_html_viewer/utils/color_utils.dart';
+import 'package:flutter_super_html_viewer/utils/html_utils.dart';
+import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer_controller.dart';
 import 'package:universal_html/html.dart' as html;
-import 'package:flutter_super_webview/shims/dart_ui.dart' as ui;
+import 'package:flutter_super_html_viewer/shims/dart_ui.dart' as ui;
 
 class WebHtmlContentViewer extends StatefulWidget {
 

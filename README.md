@@ -1,16 +1,47 @@
-# flutter_supper_webview
+# Flutter Super HtmlViewer
 
-A new Flutter project.
+A Flutter plugin that provides a HtmlViewer widget on multiple platforms
 
-## Getting Started
+## Usage
 
-This project is a starting point for a Flutter application.
+Add the package to pubspec.yaml
 
-A few resources to get you started if this is your first Flutter project:
+```dart
+dependencies:
+  flutter_super_html_viewer: x.x.x
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Import it
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```dart
+// On Mobile
+import 'package:flutter_super_html_viewer/view/mobile/mobile_html_content_viewer.dart';
+// On Web
+import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer.dart';
+```
+
+Use the widget
+
+- On Mobile
+
+```dart
+MobileHtmlContentViewer(
+    contentHtml: '<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_html_viewer">link</a>.',
+    heightContent: MediaQuery.of(context).size.height,
+    mailtoDelegate: (uri) async {},
+    onScrollHorizontalEnd: (leftDirection) {},
+    onWebViewLoaded: (isScrollPageViewActivated) {},
+)
+```
+
+- On Web
+
+```dart
+WebHtmlContentViewer(
+    widthContent: MediaQuery.of(context).size.width,
+    heightContent: MediaQuery.of(context).size.height,
+    contentHtml: '<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_html_viewer">link</a>.',
+    controller: WebHtmlContentViewerController(),
+    mailtoDelegate: (uri) {}
+)
+```

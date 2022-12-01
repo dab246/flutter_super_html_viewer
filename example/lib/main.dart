@@ -2,9 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_super_webview/view/mobile/mobile_html_content_viewer.dart';
-import 'package:flutter_super_webview/view/web/web_html_content_viewer.dart';
-import 'package:flutter_super_webview/view/web/web_html_content_viewer_controller.dart';
+import 'package:flutter_super_html_viewer/view/mobile/mobile_html_content_viewer.dart';
+import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer.dart';
+import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer_controller.dart';
 
 void main() {
   runApp(const MyApp());

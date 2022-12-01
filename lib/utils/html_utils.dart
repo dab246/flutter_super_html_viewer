@@ -1,5 +1,5 @@
 
-import 'package:flutter_super_webview/utils/html_event_action.dart';
+import 'package:flutter_super_html_viewer/utils/html_event_action.dart';
 
 class HtmlUtils {
 
