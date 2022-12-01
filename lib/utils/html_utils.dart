@@ -1,12 +1,11 @@
-
 import 'package:flutter_super_html_viewer/utils/html_event_action.dart';
 
 class HtmlUtils {
-
   static const scrollEventJSChannelName = 'ScrollEventListener';
   static const nameClassToolTip = 'tmail-tooltip';
 
-  static String generateHtmlDocument(String content, {
+  static String generateHtmlDocument(
+    String content, {
     double? minHeight,
     double? minWidth,
     String? styleCSS,

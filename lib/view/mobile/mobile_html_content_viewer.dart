@@ -18,7 +18,6 @@ typedef OnScrollHorizontalEnd = Function(bool leftDirection);
 typedef OnWebViewLoaded = Function(bool isScrollPageViewActivated);
 
 class MobileHtmlContentViewer extends StatefulWidget {
-
   final String contentHtml;
   final double heightContent;
 
@@ -55,7 +54,6 @@ class MobileHtmlContentViewer extends StatefulWidget {
 }
 
 class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
-
   late double actualHeight;
   double minHeight = 100;
   double minWidth = 300;
@@ -94,7 +92,8 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
           child: SizedBox(
               width: 30,
               height: 30,
-              child: CupertinoActivityIndicator(color: ColorUtils.colorLoading))),
+              child:
+                  CupertinoActivityIndicator(color: ColorUtils.colorLoading))),
     );
   }
 
@@ -122,8 +121,7 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
       javascriptChannels: {
         JavascriptChannel(
             name: HtmlUtils.scrollEventJSChannelName,
-            onMessageReceived: _onHandleScrollEvent
-        )
+            onMessageReceived: _onHandleScrollEvent)
       },
       gestureNavigationEnabled: true,
       debuggingEnabled: true,
@@ -144,13 +142,15 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
     log('_HtmlContentViewState::_onHandleScrollEvent():message: ${javascriptMessage.message}');
     if (javascriptMessage.message == HtmlEventAction.scrollRightEndAction) {
       widget.onScrollHorizontalEnd?.call(false);
-    } else if (javascriptMessage.message == HtmlEventAction.scrollLeftEndAction) {
+    } else if (javascriptMessage.message ==
+        HtmlEventAction.scrollLeftEndAction) {
       widget.onScrollHorizontalEnd?.call(true);
     }
   }
 
   Future<void> _setActualHeightView() async {
-    final scrollHeightText = await _webViewController.runJavascriptReturningResult('document.body.scrollHeight');
+    final scrollHeightText = await _webViewController
+        .runJavascriptReturningResult('document.body.scrollHeight');
     final scrollHeight = double.tryParse(scrollHeightText);
     log('_HtmlContentViewState::_setActualHeightView(): scrollHeightText: $scrollHeightText');
     if (scrollHeight != null && mounted) {
@@ -158,7 +158,8 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
       if (scrollHeightWithBuffer > minHeight) {
         setState(() {
           // It hotfix for web_view crash on android device and waiting lib web_view update to fix this issue
-          if (Platform.isAndroid && scrollHeightWithBuffer > maxHeightForAndroid){
+          if (Platform.isAndroid &&
+              scrollHeightWithBuffer > maxHeightForAndroid) {
             actualHeight = maxHeightForAndroid;
           } else {
             actualHeight = scrollHeightWithBuffer;
@@ -173,8 +174,10 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
 
   Future<void> _setActualWidthView() async {
     final result = await Future.wait([
-      _webViewController.runJavascriptReturningResult('document.getElementsByClassName("tmail-content")[0].scrollWidth'),
-      _webViewController.runJavascriptReturningResult('document.getElementsByClassName("tmail-content")[0].offsetWidth')
+      _webViewController.runJavascriptReturningResult(
+          'document.getElementsByClassName("tmail-content")[0].scrollWidth'),
+      _webViewController.runJavascriptReturningResult(
+          'document.getElementsByClassName("tmail-content")[0].offsetWidth')
     ]);
 
     if (result.length == 2) {
@@ -201,7 +204,8 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
     }
   }
 
-  FutureOr<NavigationDecision> _onNavigation(NavigationRequest navigation) async {
+  FutureOr<NavigationDecision> _onNavigation(
+      NavigationRequest navigation) async {
     if (navigation.isForMainFrame && navigation.url == 'about:blank') {
       return NavigationDecision.navigate;
     }
@@ -218,10 +222,8 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
       return NavigationDecision.prevent;
     }
     if (await launcher.canLaunchUrl(Uri.parse(url))) {
-      await launcher.launchUrl(
-          Uri.parse(url),
-          mode: LaunchMode.externalApplication
-      );
+      await launcher.launchUrl(Uri.parse(url),
+          mode: LaunchMode.externalApplication);
     }
     return NavigationDecision.prevent;
   }

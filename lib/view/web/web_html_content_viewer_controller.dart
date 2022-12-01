@@ -4,7 +4,6 @@ import 'package:universal_html/html.dart' as html;
 import 'package:flutter/foundation.dart';
 
 class WebHtmlContentViewerController {
-
   WebHtmlContentViewerController();
 
   /// Manages the view ID for the [HtmlViewerControllerForWeb] on web

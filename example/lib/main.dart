@@ -11,7 +11,7 @@ void main() {
 }
 
 const _htmlContent =
-'''<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_webview">link</a>.
+    '''<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_webview">link</a>.
   <p>Here is <b>bold</b> text</p>
   <p>Here is <i>some italic sic</i> text</p>
   <p>Here is <i><b>bold and italic</b></i> text</p>
@@ -50,45 +50,43 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (kIsWeb)
-              WebHtmlContentViewer(
-                widthContent: MediaQuery.of(context).size.width,
-                heightContent: MediaQuery.of(context).size.height,
-                contentHtml: _htmlContent,
-                controller: WebHtmlContentViewerController(),
-                mailtoDelegate: (uri) {
-                  log('_MyHomePageState::build():mailtoDelegate: $uri');
-                }
-              )
-            else
-              MobileHtmlContentViewer(
-                contentHtml: _htmlContent,
-                heightContent: MediaQuery.of(context).size.height,
-                mailtoDelegate: (uri) async {
-                  log('_MyHomePageState::build():mailtoDelegate: $uri');
-                },
-                onScrollHorizontalEnd: (leftDirection) {
-                  log('_MyHomePageState::build():onScrollHorizontalEnd: $leftDirection');
-                },
-                onWebViewLoaded: (isScrollPageViewActivated) {
-                  log('_MyHomePageState::build():onWebViewLoaded: $isScrollPageViewActivated');
-                },
-              )
-          ],
+        appBar: AppBar(
+          title: Text(widget.title),
         ),
-      )// This trailing comma makes auto-formatting nicer for build methods.
-    );
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (kIsWeb)
+                WebHtmlContentViewer(
+                    widthContent: MediaQuery.of(context).size.width,
+                    heightContent: MediaQuery.of(context).size.height,
+                    contentHtml: _htmlContent,
+                    controller: WebHtmlContentViewerController(),
+                    mailtoDelegate: (uri) {
+                      log('_MyHomePageState::build():mailtoDelegate: $uri');
+                    })
+              else
+                MobileHtmlContentViewer(
+                  contentHtml: _htmlContent,
+                  heightContent: MediaQuery.of(context).size.height,
+                  mailtoDelegate: (uri) async {
+                    log('_MyHomePageState::build():mailtoDelegate: $uri');
+                  },
+                  onScrollHorizontalEnd: (leftDirection) {
+                    log('_MyHomePageState::build():onScrollHorizontalEnd: $leftDirection');
+                  },
+                  onWebViewLoaded: (isScrollPageViewActivated) {
+                    log('_MyHomePageState::build():onWebViewLoaded: $isScrollPageViewActivated');
+                  },
+                )
+            ],
+          ),
+        ) // This trailing comma makes auto-formatting nicer for build methods.
+        );
   }
 }
