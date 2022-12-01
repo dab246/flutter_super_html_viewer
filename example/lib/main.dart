@@ -1,7 +1,10 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_super_webview/view/mobile/mobile_html_content_viewer.dart';
+import 'package:flutter_super_webview/view/web/web_html_content_viewer.dart';
+import 'package:flutter_super_webview/view/web/web_html_content_viewer_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,19 +62,30 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MobileHtmlContentViewer(
-              contentHtml: _htmlContent,
-              heightContent: MediaQuery.of(context).size.height,
-              mailtoDelegate: (uri) async {
-                log('_MyHomePageState::build():mailtoDelegate: $uri');
-              },
-              onScrollHorizontalEnd: (leftDirection) {
-                log('_MyHomePageState::build():onScrollHorizontalEnd: $leftDirection');
-              },
-              onWebViewLoaded: (isScrollPageViewActivated) {
-                log('_MyHomePageState::build():onWebViewLoaded: $isScrollPageViewActivated');
-              },
-            )
+            if (kIsWeb)
+              WebHtmlContentViewer(
+                widthContent: MediaQuery.of(context).size.width,
+                heightContent: MediaQuery.of(context).size.height,
+                contentHtml: _htmlContent,
+                controller: WebHtmlContentViewerController(),
+                mailtoDelegate: (uri) {
+                  log('_MyHomePageState::build():mailtoDelegate: $uri');
+                }
+              )
+            else
+              MobileHtmlContentViewer(
+                contentHtml: _htmlContent,
+                heightContent: MediaQuery.of(context).size.height,
+                mailtoDelegate: (uri) async {
+                  log('_MyHomePageState::build():mailtoDelegate: $uri');
+                },
+                onScrollHorizontalEnd: (leftDirection) {
+                  log('_MyHomePageState::build():onScrollHorizontalEnd: $leftDirection');
+                },
+                onWebViewLoaded: (isScrollPageViewActivated) {
+                  log('_MyHomePageState::build():onWebViewLoaded: $isScrollPageViewActivated');
+                },
+              )
           ],
         ),
       )// This trailing comma makes auto-formatting nicer for build methods.
