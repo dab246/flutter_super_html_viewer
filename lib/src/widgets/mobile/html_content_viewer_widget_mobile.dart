@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter_super_html_viewer/flutter_super_html_viewer.dart';
 import 'package:flutter_super_html_viewer/utils/app_define.dart';
-import 'package:flutter_super_html_viewer/utils/shims/dart_ui.dart' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -76,7 +76,7 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
     super.initState();
     actualHeight = widget.initialContentHeight;
     maxHeightForAndroid =
-        widget.maxContentHeightForAndroid ?? ui.window.physicalSize.height;
+        widget.maxContentHeightForAndroid ?? window.physicalSize.height;
 
     _htmlData = HtmlUtils.generateHtmlDocument(
       widget.htmlContent,
