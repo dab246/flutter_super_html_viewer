@@ -4,57 +4,66 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_super_html_viewer/flutter_super_html_viewer.dart';
+import 'package:flutter_super_html_viewer/utils/app_define.dart';
 import 'package:flutter_super_html_viewer/utils/color_utils.dart';
 import 'package:flutter_super_html_viewer/utils/html_utils.dart';
-import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer_controller.dart';
 import 'package:universal_html/html.dart' as html;
-import 'package:flutter_super_html_viewer/shims/dart_ui.dart' as ui;
+import 'package:flutter_super_html_viewer/utils/shims/dart_ui.dart' as ui;
 
-class WebHtmlContentViewer extends StatefulWidget {
-  final String contentHtml;
-  final double widthContent;
-  final double heightContent;
-  final WebHtmlContentViewerController controller;
+class HtmlContentViewerWidget extends StatefulWidget {
+  final String htmlContent;
+  final double initialContentHeight;
+  final double initialContentWidth;
+  final double minContentHeight;
+  final double minContentWidth;
+  final String? customStyleCssTag;
+  final String? customScriptsTag;
+  final Widget? loadingView;
+  final HtmlViewerController? controller;
 
   /// Handler for mailto: links
-  final Function(Uri?)? mailtoDelegate;
+  final OnMailtoDelegate? mailtoDelegate;
 
-  const WebHtmlContentViewer({
+  const HtmlContentViewerWidget({
     Key? key,
-    required this.contentHtml,
-    required this.widthContent,
-    required this.heightContent,
-    required this.controller,
+    required this.htmlContent,
+    this.initialContentHeight = 400,
+    this.initialContentWidth = 1000,
+    this.minContentWidth = 300,
+    this.minContentHeight = 100,
+    this.customStyleCssTag,
+    this.customScriptsTag,
+    this.loadingView,
+    this.controller,
     this.mailtoDelegate,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _WebHtmlContentViewerState();
+  State<HtmlContentViewerWidget> createState() =>
+      _HtmlContentViewerWidgetState();
 }
 
-class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
-  /// The view ID for the IFrameElement. Must be unique.
+class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
   late String createdViewId;
-
-  /// The actual height of the content view, used to automatically set the height
   late double actualHeight;
-
-  /// The actual width of the content view, used to automatically set the width
   late double actualWidth;
+  late HtmlViewerController controller;
+  late String _htmlData;
 
   Future<bool>? webInit;
-  String? _htmlData;
   bool _isLoading = true;
-  double minHeight = 100;
-  double minWidth = 300;
 
   @override
   void initState() {
     super.initState();
-    actualHeight = widget.heightContent;
-    actualWidth = widget.widthContent;
+    actualHeight = widget.initialContentHeight;
+    actualWidth = widget.initialContentWidth;
+    controller = widget.controller ?? HtmlViewerController();
+
     createdViewId = _getRandString(10);
-    widget.controller.viewId = createdViewId;
+    controller.viewId = createdViewId;
+
     _setUpWeb();
   }
 
@@ -64,7 +73,7 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
     return base64UrlEncode(values);
   }
 
-  String _generateHtmlDocument(String content) {
+  void _setUpWeb() {
     final webViewActionScripts = '''
       <script type="text/javascript">
         window.parent.addEventListener('message', handleMessage, false);
@@ -118,16 +127,13 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
         
           return url.protocol === "http:" || url.protocol === "https:" || url.protocol === "mailto:";
         }
-      </script>
-    ''';
-
-    const scriptsDisableZoom = '''
-      <script type="text/javascript">
+        
         document.addEventListener('wheel', function(e) {
           e.ctrlKey && e.preventDefault();
         }, {
           passive: false,
         });
+        
         window.addEventListener('keydown', function(e) {
           if (event.metaKey || event.ctrlKey) {
             switch (event.key) {
@@ -141,22 +147,17 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
       </script>
     ''';
 
-    final htmlTemplate = HtmlUtils.generateHtmlDocument(content,
-        minHeight: minHeight,
-        minWidth: minWidth,
-        styleCSS: HtmlUtils.tooltipLinkCss,
-        javaScripts: webViewActionScripts + scriptsDisableZoom);
-
-    return htmlTemplate;
-  }
-
-  void _setUpWeb() {
-    _htmlData = _generateHtmlDocument(widget.contentHtml);
+    _htmlData = HtmlUtils.generateHtmlDocument(widget.htmlContent,
+        minHeight: widget.minContentHeight,
+        minWidth: widget.minContentWidth,
+        customStyleCssTag: widget.customStyleCssTag,
+        customScriptsTag:
+            webViewActionScripts + (widget.customScriptsTag ?? ''));
 
     final iframe = html.IFrameElement()
       ..width = actualWidth.toString()
       ..height = actualHeight.toString()
-      ..srcdoc = _htmlData ?? ''
+      ..srcdoc = _htmlData
       ..style.border = 'none'
       ..style.overflow = 'hidden'
       ..style.width = '100%'
@@ -186,7 +187,7 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
             final docHeight = data['height'] ?? actualHeight;
             if (docHeight != null && mounted) {
               final scrollHeightWithBuffer = docHeight + 30.0;
-              if (scrollHeightWithBuffer > minHeight) {
+              if (scrollHeightWithBuffer > widget.minContentHeight) {
                 setState(() {
                   actualHeight = scrollHeightWithBuffer;
                   _isLoading = false;
@@ -205,7 +206,7 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
               data['view'] == createdViewId) {
             final docWidth = data['width'] ?? actualWidth;
             if (docWidth != null && mounted) {
-              if (docWidth > minWidth) {
+              if (docWidth > widget.minContentWidth) {
                 setState(() {
                   actualWidth = docWidth;
                 });
@@ -256,34 +257,25 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
     return Stack(
       children: [
         SizedBox(
-          height: actualHeight,
-          width: actualWidth,
-          child: _buildWebView(),
-        ),
-        if (_isLoading) _buildLoadingView()
+            height: actualHeight, width: actualWidth, child: _buildWebView()),
+        if (_isLoading) widget.loadingView ?? _buildLoadingView()
       ],
     );
   }
 
   Widget _buildLoadingView() {
-    return const Align(
+    return Align(
       alignment: Alignment.topCenter,
-      child: Padding(
-          padding: EdgeInsets.all(16),
-          child: SizedBox(
-              width: 30,
-              height: 30,
-              child:
-                  CupertinoActivityIndicator(color: ColorUtils.colorLoading))),
+      child: Container(
+          width: 30,
+          height: 30,
+          margin: const EdgeInsets.all(16),
+          child:
+              const CupertinoActivityIndicator(color: ColorUtils.colorLoading)),
     );
   }
 
   Widget _buildWebView() {
-    final htmlData = _htmlData;
-    if (htmlData == null || htmlData.isEmpty) {
-      return Container();
-    }
-
     return Directionality(
         textDirection: TextDirection.ltr,
         child: FutureBuilder<bool>(
@@ -291,7 +283,7 @@ class _WebHtmlContentViewerState extends State<WebHtmlContentViewer> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return HtmlElementView(
-                  key: ValueKey(htmlData),
+                  key: ValueKey(_htmlData),
                   viewType: createdViewId,
                 );
               } else {

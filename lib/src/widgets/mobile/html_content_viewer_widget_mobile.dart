@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
-import 'dart:ui';
+import 'package:flutter_super_html_viewer/flutter_super_html_viewer.dart';
+import 'package:flutter_super_html_viewer/utils/app_define.dart';
+import 'package:flutter_super_html_viewer/utils/shims/dart_ui.dart' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -10,64 +11,78 @@ import 'package:flutter/material.dart';
 import 'package:flutter_super_html_viewer/utils/color_utils.dart';
 import 'package:flutter_super_html_viewer/utils/html_event_action.dart';
 import 'package:flutter_super_html_viewer/utils/html_utils.dart';
+import 'package:flutter_super_html_viewer/utils/javascript_utils.dart';
 import 'package:url_launcher/url_launcher.dart' as launcher;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-typedef OnScrollHorizontalEnd = Function(bool leftDirection);
-typedef OnWebViewLoaded = Function(bool isScrollPageViewActivated);
+class HtmlContentViewerWidget extends StatefulWidget {
+  final String htmlContent;
+  final double initialContentHeight;
+  final double minContentHeight;
+  final double? maxContentHeightForAndroid;
+  final String? customStyleCssTag;
+  final String? customScriptsTag;
+  final Widget? loadingView;
 
-class MobileHtmlContentViewer extends StatefulWidget {
-  final String contentHtml;
-  final double heightContent;
+  /// Register this callback after onWebViewCreated() called.
+  final OnWebViewCreated? onWebViewCreated;
+
+  /// Register this callback after onPageFinished() called
+  final OnWebViewLoaded? onWebViewLoaded;
+
+  /// Handler for mailto: links
+  final OnMailtoDelegate? mailtoDelegate;
+
+  /// Handler for any non-media URLs that the user taps on the website.
+  /// Returns `true` when the given `url` was handled.
+  final OnUrlLauncherDelegate? urlLauncherDelegate;
 
   /// Listen event scroll horizontal web view
   final OnScrollHorizontalEnd? onScrollHorizontalEnd;
 
-  /// Register this callback after _onPageFinished() called
-  final OnWebViewLoaded? onWebViewLoaded;
-
-  /// Register this callback if you want a reference to the [WebViewController].
-  final void Function(WebViewController controller)? onCreated;
-
-  /// Handler for mailto: links
-  final Future Function(Uri mailto)? mailtoDelegate;
-
-  /// Handler for any non-media URLs that the user taps on the website.
-  ///
-  /// Returns `true` when the given `url` was handled.
-  final Future<bool> Function(Uri url)? urlLauncherDelegate;
-
-  const MobileHtmlContentViewer({
-    Key? key,
-    required this.contentHtml,
-    this.heightContent = 400,
-    this.onCreated,
-    this.onWebViewLoaded,
-    this.onScrollHorizontalEnd,
-    this.urlLauncherDelegate,
-    this.mailtoDelegate,
-  }) : super(key: key);
+  const HtmlContentViewerWidget(
+      {Key? key,
+      required this.htmlContent,
+      this.initialContentHeight = 400,
+      this.minContentHeight = 100,
+      // It hotfix for web_view crash on android device and waiting lib web_view update to fix this issue
+      this.maxContentHeightForAndroid,
+      this.customStyleCssTag,
+      this.customScriptsTag,
+      this.loadingView,
+      this.onWebViewCreated,
+      this.onWebViewLoaded,
+      this.onScrollHorizontalEnd,
+      this.urlLauncherDelegate,
+      this.mailtoDelegate})
+      : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _MobileHtmlContentViewerViewState();
+  State<HtmlContentViewerWidget> createState() =>
+      _HtmlContentViewerWidgetState();
 }
 
-class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
+class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
   late double actualHeight;
-  double minHeight = 100;
-  double minWidth = 300;
   late double maxHeightForAndroid;
-  String? _htmlData;
   late WebViewController _webViewController;
+  late String _htmlData;
+
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    actualHeight = widget.heightContent;
-    maxHeightForAndroid = window.physicalSize.height;
-    _htmlData = HtmlUtils.generateHtmlDocument(widget.contentHtml);
+    actualHeight = widget.initialContentHeight;
+    maxHeightForAndroid =
+        widget.maxContentHeightForAndroid ?? ui.window.physicalSize.height;
+
+    _htmlData = HtmlUtils.generateHtmlDocument(
+      widget.htmlContent,
+      customScriptsTag: widget.customScriptsTag,
+      customStyleCssTag: widget.customStyleCssTag,
+    );
   }
 
   @override
@@ -79,38 +94,30 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
               height: actualHeight,
               width: constraints.maxWidth,
               child: _buildWebView()),
-          if (_isLoading) _buildLoadingView()
+          if (_isLoading) widget.loadingView ?? _buildLoadingView()
         ],
       );
     });
   }
 
   Widget _buildLoadingView() {
-    return const Center(
-      child: Padding(
-          padding: EdgeInsets.all(16),
-          child: SizedBox(
-              width: 30,
-              height: 30,
-              child:
-                  CupertinoActivityIndicator(color: ColorUtils.colorLoading))),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+          width: 30,
+          height: 30,
+          margin: const EdgeInsets.all(16),
+          child:
+              const CupertinoActivityIndicator(color: ColorUtils.colorLoading)),
     );
   }
 
   Widget _buildWebView() {
-    final htmlData = _htmlData;
-    if (htmlData == null || htmlData.isEmpty) {
-      return Container();
-    }
     return WebView(
-      key: ValueKey(htmlData),
+      key: ValueKey(_htmlData),
       javascriptMode: JavascriptMode.unrestricted,
       backgroundColor: Colors.white,
-      onWebViewCreated: (controller) async {
-        _webViewController = controller;
-        await controller.loadHtmlString(htmlData, baseUrl: null);
-        widget.onCreated?.call(controller);
-      },
+      onWebViewCreated: _onWebViewCreated,
       onPageFinished: _onPageFinished,
       zoomEnabled: false,
       navigationDelegate: _onNavigation,
@@ -128,9 +135,18 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
     );
   }
 
+  void _onWebViewCreated(WebViewController controller) async {
+    _webViewController = controller;
+    await controller.loadHtmlString(_htmlData, baseUrl: null);
+    final htmlViewerController = HtmlViewerController();
+    htmlViewerController.webViewController = _webViewController;
+    widget.onWebViewCreated?.call(htmlViewerController);
+  }
+
   void _onPageFinished(String url) async {
     await Future.wait([
-      _webViewController.runJavascript(HtmlUtils.runScriptsHandleScrollEvent),
+      _webViewController
+          .runJavascript(JavascriptUtils.scriptsHandleScrollEventOnRunTime),
       _setActualHeightView(),
       _setActualWidthView(),
     ]);
@@ -139,7 +155,6 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
   }
 
   void _onHandleScrollEvent(JavascriptMessage javascriptMessage) {
-    log('_HtmlContentViewState::_onHandleScrollEvent():message: ${javascriptMessage.message}');
     if (javascriptMessage.message == HtmlEventAction.scrollRightEndAction) {
       widget.onScrollHorizontalEnd?.call(false);
     } else if (javascriptMessage.message ==
@@ -152,12 +167,10 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
     final scrollHeightText = await _webViewController
         .runJavascriptReturningResult('document.body.scrollHeight');
     final scrollHeight = double.tryParse(scrollHeightText);
-    log('_HtmlContentViewState::_setActualHeightView(): scrollHeightText: $scrollHeightText');
     if (scrollHeight != null && mounted) {
       final scrollHeightWithBuffer = scrollHeight + 30.0;
-      if (scrollHeightWithBuffer > minHeight) {
+      if (scrollHeightWithBuffer > widget.minContentHeight) {
         setState(() {
-          // It hotfix for web_view crash on android device and waiting lib web_view update to fix this issue
           if (Platform.isAndroid &&
               scrollHeightWithBuffer > maxHeightForAndroid) {
             actualHeight = maxHeightForAndroid;
@@ -183,12 +196,9 @@ class _MobileHtmlContentViewerViewState extends State<MobileHtmlContentViewer> {
     if (result.length == 2) {
       final scrollWidth = double.tryParse(result[0]);
       final offsetWidth = double.tryParse(result[1]);
-      log('_HtmlContentViewState::_setActualWidthView():scrollWidth: $scrollWidth');
-      log('_HtmlContentViewState::_setActualWidthView():offsetWidth: $offsetWidth');
 
       if (scrollWidth != null && offsetWidth != null && mounted) {
         final isScrollActivated = scrollWidth.round() == offsetWidth.round();
-        log('_HtmlContentViewState::_setActualWidthView():isScrollActivated: $isScrollActivated');
         widget.onWebViewLoaded?.call(isScrollActivated);
       }
     }

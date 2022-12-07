@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:universal_html/html.dart' as html;
-
+import 'package:flutter_super_html_viewer/src/controller/html_viewer_controller_unsupported.dart'
+    as unsupported;
 import 'package:flutter/foundation.dart';
 
-class WebHtmlContentViewerController {
-  WebHtmlContentViewerController();
-
+/// Controller for web
+class HtmlViewerController extends unsupported.HtmlViewerController {
   /// Manages the view ID for the [HtmlViewerControllerForWeb] on web
   String? _viewId;
 
+  @override
   set viewId(String? viewId) => _viewId = viewId;
 
   /// Recalculates the height of the editor to remove any vertical scrolling.
@@ -19,6 +20,7 @@ class WebHtmlContentViewerController {
   }
 
   /// A function to quickly call a document.execCommand function in a readable format
+  @override
   void execCommand(String command, {String? argument}) {
     _evaluateJavascriptWeb(data: {
       'type': 'toIframe: execCommand',
@@ -29,6 +31,7 @@ class WebHtmlContentViewerController {
 
   /// A function to execute JS passed as a [WebScript] to the editor. This should
   /// only be used on Flutter Web.
+  @override
   Future<dynamic> evaluateJavascriptWeb(String name,
       {bool hasReturnValue = false}) async {
     _evaluateJavascriptWeb(data: {'type': 'toIframe: $name'});

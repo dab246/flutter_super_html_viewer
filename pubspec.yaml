@@ -18,6 +18,8 @@ dependencies:
 
   universal_html: ^2.0.8
 
+  webview_windows: ^0.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
