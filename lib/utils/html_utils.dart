@@ -1,16 +1,12 @@
-import 'package:flutter_super_html_viewer/utils/html_event_action.dart';
-
 class HtmlUtils {
   static const scrollEventJSChannelName = 'ScrollEventListener';
-  static const nameClassToolTip = 'tmail-tooltip';
 
   static String generateHtmlDocument(
     String content, {
     double? minHeight,
     double? minWidth,
-    String? styleCSS,
-    String? javaScripts,
-    bool hideScrollBar = true,
+    String? customStyleCssTag,
+    String? customScriptsTag,
   }) {
     return '''
       <!DOCTYPE html>
@@ -23,19 +19,58 @@ class HtmlUtils {
           min-height: ${minHeight ?? 0}px;
           min-width: ${minWidth ?? 0}px;
           overflow: auto;
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
         }
-        ${hideScrollBar ? '''
-          .tmail-content::-webkit-scrollbar {
-            display: none;
-          }
-          .tmail-content {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-          }
-        ''' : ''}
-        ${styleCSS ?? ''}
+        
+        .tmail-content::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .tmail-tooltip .tooltiptext {
+          visibility: hidden;
+          max-width: 400px;
+          background-color: black;
+          color: #fff;
+          text-align: center;
+          border-radius: 6px;
+          padding: 5px 8px 5px 8px;
+          white-space: nowrap; 
+          overflow: hidden;
+          text-overflow: ellipsis;
+          position: absolute;
+          z-index: 1;
+        }
+        
+        .tmail-tooltip:hover .tooltiptext {
+          visibility: visible;
+        }
+        
+        pre {
+          display: block;
+          padding: 10px;
+          margin: 0 0 10px;
+          font-size: 13px;
+          line-height: 1.5;
+          color: #333;
+          word-break: break-all;
+          word-wrap: break-word;
+          background-color: #f5f5f5;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          overflow: auto;
+        }
+        
+        blockquote {
+          margin-left: 4px;
+          margin-right: 4px;
+          padding-left: 8px;
+          padding-right: 8px;
+          border-left: 2px solid #eee;
+        }
+        ${customStyleCssTag ?? ''}
       </style>
-      ${javaScripts ?? ''}
+      ${customScriptsTag ?? ''}
       </head>
       <body>
       <div class="tmail-content">$content</div>
@@ -43,85 +78,4 @@ class HtmlUtils {
       </html> 
     ''';
   }
-
-  static const runScriptsHandleScrollEvent = '''
-    let contentElement = document.getElementsByClassName('tmail-content')[0];
-    var xDown = null;                                                        
-    var yDown = null;
-    
-    contentElement.addEventListener('touchstart', handleTouchStart, false);
-    contentElement.addEventListener('touchmove', handleTouchMove, false);
-    
-    function getTouches(evt) {
-      return evt.touches || evt.originalEvent.touches;
-    }                                                     
-                                                                             
-    function handleTouchStart(evt) {
-      const firstTouch = getTouches(evt)[0];                                      
-      xDown = firstTouch.clientX;                                      
-      yDown = firstTouch.clientY;                                     
-    }                                               
-                                                                             
-    function handleTouchMove(evt) {
-      if (!xDown || !yDown) {
-        return;
-      }
-  
-      var xUp = evt.touches[0].clientX;                                    
-      var yUp = evt.touches[0].clientY;
-  
-      var xDiff = xDown - xUp;
-      var yDiff = yDown - yUp;
-                                                                           
-      if (Math.abs(xDiff) > Math.abs(yDiff)) {
-        let newScrollLeft = contentElement.scrollLeft;
-        let scrollWidth = contentElement.scrollWidth;
-        let offsetWidth = contentElement.offsetWidth;
-        let maxOffset = Math.round(scrollWidth - offsetWidth);
-        let scrollLeftRounded = Math.round(newScrollLeft);
-         
-        /*  
-          console.log('newScrollLeft: ' + newScrollLeft);
-          console.log('scrollWidth: ' + scrollWidth);
-          console.log('offsetWidth: ' + offsetWidth);
-          console.log('maxOffset: ' + maxOffset);
-          console.log('scrollLeftRounded: ' + scrollLeftRounded); */
-          
-        if (xDiff > 0) {
-          if (maxOffset === scrollLeftRounded || 
-              maxOffset === (scrollLeftRounded + 1) || 
-              maxOffset === (scrollLeftRounded - 1)) {
-            window.$scrollEventJSChannelName.postMessage('${HtmlEventAction.scrollRightEndAction}');
-          }
-        } else {
-          if (scrollLeftRounded === 0) {
-            window.$scrollEventJSChannelName.postMessage('${HtmlEventAction.scrollLeftEndAction}');
-          }
-        }                       
-      }
-      
-      xDown = null;
-      yDown = null;                                             
-    }
-  ''';
-
-  static const tooltipLinkCss = '''
-    .$nameClassToolTip .tooltiptext {
-      visibility: hidden;
-      max-width: 400px;
-      background-color: black;
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px 8px 5px 8px;
-      white-space: nowrap; 
-      overflow: hidden;
-      text-overflow: ellipsis;
-      position: absolute;
-      z-index: 1;
-    }
-    .$nameClassToolTip:hover .tooltiptext {
-      visibility: visible;
-    }
-  ''';
 }

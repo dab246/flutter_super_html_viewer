@@ -2,6 +2,12 @@
 
 A Flutter plugin that provides a HtmlViewer widget on multiple platforms
 
+## Supported Platform
+- Android
+- iOS
+- Web
+- Windows
+
 ## Usage
 
 Add the package to pubspec.yaml
@@ -14,34 +20,19 @@ dependencies:
 Import it
 
 ```dart
-// On Mobile
-import 'package:flutter_super_html_viewer/view/mobile/mobile_html_content_viewer.dart';
-// On Web
-import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer.dart';
+import 'package:flutter_super_html_viewer/flutter_super_html_viewer.dart';
 ```
 
 Use the widget
 
-- On Mobile
-
 ```dart
-MobileHtmlContentViewer(
-    contentHtml: '<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_html_viewer">link</a>.',
-    heightContent: MediaQuery.of(context).size.height,
-    mailtoDelegate: (uri) async {},
-    onScrollHorizontalEnd: (leftDirection) {},
-    onWebViewLoaded: (isScrollPageViewActivated) {},
+HtmlContentViewer(
+    htmlContent: '<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_html_viewer">link</a>.',
+    initialContentHeight: MediaQuery.of(context).size.height,
+    initialContentWidth: MediaQuery.of(context).size.width,
 )
 ```
 
-- On Web
+## Contributing
 
-```dart
-WebHtmlContentViewer(
-    widthContent: MediaQuery.of(context).size.width,
-    heightContent: MediaQuery.of(context).size.height,
-    contentHtml: '<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_html_viewer">link</a>.',
-    controller: WebHtmlContentViewerController(),
-    mailtoDelegate: (uri) {}
-)
-```
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

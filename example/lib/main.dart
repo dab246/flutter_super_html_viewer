@@ -1,17 +1,12 @@
-import 'dart:developer';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_super_html_viewer/view/mobile/mobile_html_content_viewer.dart';
-import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer.dart';
-import 'package:flutter_super_html_viewer/view/web/web_html_content_viewer_controller.dart';
+import 'package:flutter_super_html_viewer/flutter_super_html_viewer.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 const _htmlContent =
-    '''<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_webview">link</a>.
+    '''<p>Here is some text</p> with a <a href="https://github.com/dab246/flutter_super_webview" target="_blank">link</a>.
   <p>Here is <b>bold</b> text</p>
   <p>Here is <i>some italic sic</i> text</p>
   <p>Here is <i><b>bold and italic</b></i> text</p>
@@ -22,7 +17,7 @@ const _htmlContent =
     <blockquote>
         Another second level blockqote 
     </blockquote>
-</blockquote>
+  </blockquote>
 ''';
 
 class MyApp extends StatelessWidget {
@@ -61,29 +56,11 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (kIsWeb)
-                WebHtmlContentViewer(
-                    widthContent: MediaQuery.of(context).size.width,
-                    heightContent: MediaQuery.of(context).size.height,
-                    contentHtml: _htmlContent,
-                    controller: WebHtmlContentViewerController(),
-                    mailtoDelegate: (uri) {
-                      log('_MyHomePageState::build():mailtoDelegate: $uri');
-                    })
-              else
-                MobileHtmlContentViewer(
-                  contentHtml: _htmlContent,
-                  heightContent: MediaQuery.of(context).size.height,
-                  mailtoDelegate: (uri) async {
-                    log('_MyHomePageState::build():mailtoDelegate: $uri');
-                  },
-                  onScrollHorizontalEnd: (leftDirection) {
-                    log('_MyHomePageState::build():onScrollHorizontalEnd: $leftDirection');
-                  },
-                  onWebViewLoaded: (isScrollPageViewActivated) {
-                    log('_MyHomePageState::build():onWebViewLoaded: $isScrollPageViewActivated');
-                  },
-                )
+              HtmlContentViewer(
+                htmlContent: _htmlContent,
+                initialContentHeight: MediaQuery.of(context).size.height,
+                initialContentWidth: MediaQuery.of(context).size.width,
+              )
             ],
           ),
         ) // This trailing comma makes auto-formatting nicer for build methods.
