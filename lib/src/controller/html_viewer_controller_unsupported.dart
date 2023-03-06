@@ -1,8 +1,6 @@
 class HtmlViewerController {
-  /// Manages the view ID for the [HtmlViewerControllerForWeb] on web
-  String? _viewId;
 
-  set viewId(String? viewId) => _viewId = viewId;
+  set viewId(String? viewId) {}
 
   dynamic get webViewController => null;
 
