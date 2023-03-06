@@ -68,20 +68,20 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
   }
 
   @override
-  void didUpdateWidget(covariant WebHtmlContentViewer oldWidget) {
+  void didUpdateWidget(covariant HtmlContentViewerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.contentHtml != oldWidget.contentHtml) {
+    if (widget.htmlContent != oldWidget.htmlContent) {
       createdViewId = _getRandString(10);
-      widget.controller.viewId = createdViewId;
+      widget.controller?.viewId = createdViewId;
       _setUpWeb();
     }
 
-    if (widget.heightContent != oldWidget.heightContent) {
-      actualHeight = widget.heightContent;
+    if (widget.initialContentHeight != oldWidget.initialContentHeight) {
+      actualHeight = widget.initialContentHeight;
     }
 
-    if (widget.widthContent != oldWidget.widthContent) {
-      actualWidth = widget.widthContent;
+    if (widget.initialContentWidth != oldWidget.initialContentWidth) {
+      actualWidth = widget.initialContentWidth;
     }
   }
 
