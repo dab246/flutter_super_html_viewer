@@ -67,6 +67,24 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
     _setUpWeb();
   }
 
+  @override
+  void didUpdateWidget(covariant WebHtmlContentViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.contentHtml != oldWidget.contentHtml) {
+      createdViewId = _getRandString(10);
+      widget.controller.viewId = createdViewId;
+      _setUpWeb();
+    }
+
+    if (widget.heightContent != oldWidget.heightContent) {
+      actualHeight = widget.heightContent;
+    }
+
+    if (widget.widthContent != oldWidget.widthContent) {
+      actualWidth = widget.widthContent;
+    }
+  }
+
   String _getRandString(int len) {
     var random = math.Random.secure();
     var values = List<int>.generate(len, (i) => random.nextInt(255));
@@ -217,12 +235,10 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
           if (data['type'] != null &&
               data['type'].contains('toDart: onChangeContent') &&
               data['view'] == createdViewId) {
-            if (Scrollable.of(context) != null) {
-              Scrollable.of(context)!.position.ensureVisible(
-                  context.findRenderObject()!,
-                  duration: const Duration(milliseconds: 100),
-                  curve: Curves.easeIn);
-            }
+            Scrollable.of(context).position.ensureVisible(
+                context.findRenderObject()!,
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeIn);
           }
 
           if (data['type'] != null &&
