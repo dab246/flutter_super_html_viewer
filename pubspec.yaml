@@ -1,7 +1,7 @@
 name: flutter_super_html_viewer
 description: A Flutter plugin that provides a HtmlViewer widget on multiple platforms
 homepage: https://github.com/dab246/flutter_super_html_viewer.git
-version: 0.0.2
+version: 0.1.0
 
 environment:
   sdk: ">=2.19.2 <3.0.0"

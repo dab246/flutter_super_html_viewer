@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter_super_html_viewer/flutter_super_html_viewer.dart';
 import 'package:flutter_super_html_viewer/utils/app_define.dart';
 
@@ -83,7 +83,7 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
   }
 
   @override
-  void didUpdateWidget(covariant MobileHtmlContentViewer oldWidget) {
+  void didUpdateWidget(covariant HtmlContentViewerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _htmlData = HtmlUtils.generateHtmlDocument(
       widget.htmlContent,
@@ -121,7 +121,7 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
 
   Widget _buildWebView() {
     final htmlData = _htmlData;
-    if (htmlData == null || htmlData.isEmpty) {
+    if (htmlData.isEmpty) {
       return Container();
     }
     return InAppWebView(
@@ -129,7 +129,9 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
         onWebViewCreated: (controller) async {
           _webViewController = controller;
           controller.loadData(data: htmlData);
-          widget.onCreated?.call(controller);
+          final htmlViewerController = HtmlViewerController();
+          htmlViewerController.webViewController = _webViewController;
+          widget.onWebViewCreated?.call(htmlViewerController);
         },
         onLoadStop: _onLoadStop,
         shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
@@ -175,13 +177,13 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
     log('_HtmlContentViewState::_setActualHeightView(): scrollHeight: $scrollHeight');
     if (scrollHeight != null && mounted) {
       final scrollHeightWithBuffer = scrollHeight + 30.0;
-      if (scrollHeightWithBuffer > minHeight) {
+      if (scrollHeightWithBuffer > widget.minContentHeight) {
         setState(() {
           actualHeight = scrollHeightWithBuffer;
           _isLoading = false;
         });
       } else {
-        actualHeight = minHeight;
+        actualHeight = widget.minContentHeight;
       }
     }
 
@@ -217,7 +219,7 @@ class _HtmlContentViewerWidgetState extends State<HtmlContentViewerWidget> {
           });
 
           await _webViewController.evaluateJavascript(
-              source: HtmlUtils.runScriptsHandleScrollEvent);
+              source: JavascriptUtils.scriptsHandleScrollEventOnRunTime);
         }
 
         widget.onWebViewLoaded?.call(isScrollActivated);

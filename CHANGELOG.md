@@ -1,3 +1,7 @@
+# 0.1.0
+
+- Compatible flutter version `v3.7.5`
+
 # 0.0.2
 
 - Current supported platforms: `Android`, `IOS`, `Web`, `Windows`
